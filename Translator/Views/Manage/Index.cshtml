@@ -1,0 +1,159 @@
+﻿@using PagedList
+@model IPagedList<Translate>
+
+<div class="container">
+    @using (Html.BeginForm("Index", "Manage", FormMethod.Get))
+    {
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-6">
+                    <button type="button" class="btn btn-primary" style="margin-bottom: 15px;" data-toggle="collapse" data-target="#filterSection" aria-expanded="false" aria-controls="filterSection" id="filterToggleBtn">
+                        Show Filter
+                    </button>
+                </div>
+            </div>
+
+            <div class="collapse" id="filterSection">
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div class="form-group">
+                            <label for="startDate" >Start Date</label>
+                            <div class="input-group date" id="startDatePicker">
+                                @Html.TextBox("startDate", "", new { @id = "startDate", @class = "form-control" })
+                                <span class="input-group-addon">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="endDate">End Date</label>
+                            <div class="input-group date" id="endDatePicker">
+                                @Html.TextBox("endDate", "", new { @id = "endDate", @class = "form-control" })
+                                <span class="input-group-addon">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label for="textFilter">Original Text</label>
+                            @Html.TextBox("textFilter", "", new { @id = "textFilter", @class = "form-control", placeholder = "Filter by Original Text" })
+                        </div>
+                        <div class="form-group">
+                            <label for="translatedTextFilter">Translated Text</label>
+                            @Html.TextBox("translatedTextFilter", "", new { @id = "translatedTextFilter", @class = "form-control", placeholder = "Filter by Translated Text" })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <input type="submit" id="btnSubmit" value="Filter" class="btn btn-primary" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        }
+</div>
+
+
+    <div class="container mt-4">
+        <table class="table table-striped" style="table-layout: fixed;">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Original Text</th>
+                    <th>Translated Text</th>
+                    <th>Date and Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    int counter = 1;
+                    foreach (var record in Model)
+                    {
+                        <tr>
+                            <td>@counter</td>
+                            <td>@record.Text</td>
+                            <td>@record.TranslatedText</td>
+                            <td>@record.Date.ToString("yyyy-MM-dd HH:mm")</td>
+                        </tr>
+                        counter++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" class="text-center">No translations found.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="pagination">
+            @if (Model.HasPreviousPage)
+            {
+                <a href="@Url.Action("Index", new {
+                    startDate = Context.Request.Query["startDate"],
+                    endDate = Context.Request.Query["endDate"],
+                    textFilter = Context.Request.Query["textFilter"],
+                    translatedTextFilter = Context.Request.Query["translatedTextFilter"],
+                    pageNumber = Model.PageNumber - 1,
+                    pageSize = Model.PageSize
+                })">Previous</a>
+            }
+
+            @for (var i = 1; i <= Model.PageCount; i++)
+            {
+                <a href="@Url.Action("Index", new {
+                    startDate = Context.Request.Query["startDate"],
+                    endDate = Context.Request.Query["endDate"],
+                    textFilter = Context.Request.Query["textFilter"],
+                    translatedTextFilter = Context.Request.Query["translatedTextFilter"],
+                    pageNumber = i,
+                    pageSize = Model.PageSize
+                })">
+                    @i
+                </a>
+            }
+
+            @if (Model.HasNextPage)
+            {
+                <a href="@Url.Action("Index", new {
+                    startDate = Context.Request.Query["startDate"],
+                    endDate = Context.Request.Query["endDate"],
+                    textFilter = Context.Request.Query["textFilter"],
+                    translatedTextFilter = Context.Request.Query["translatedTextFilter"],
+                    pageNumber = Model.PageNumber + 1,
+                    pageSize = Model.PageSize
+                })">Next</a>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $('#filterToggleBtn').on('click', function () {
+            var btnText = $(this).text().trim();
+            if (btnText === 'Show Filter') {
+                $(this).text('Hide Filter');
+            } else {
+                $(this).text('Show Filter');
+            }
+        });
+    </script>
+    <script>
+        $(function () {
+            $('#startDatePicker').datetimepicker({ format: 'YYYY-MM-DD HH:mm' });
+            $('#endDatePicker').datetimepicker({ format: 'YYYY-MM-DD HH:mm' });
+        });
+    </script>
+}

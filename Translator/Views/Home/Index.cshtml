@@ -1,0 +1,85 @@
+﻿@{
+    ViewData["Title"] = "Translator";
+}
+
+<h2>Translator</h2>
+
+<form id="translateForm" method="post">
+    <div class="form-group">
+        <label for="translationType">Select translation type:</label>
+        <select class="form-control" id="translationType" name="translationType" required>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="inputText">Enter text to translate:</label>
+        <textarea class="form-control" id="inputText" name="input" rows="4" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary mt-3">Translate</button>
+</form>
+
+<div id="result" class="mt-3"></div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                url: "/Translator/translation-types",  
+                type: "GET",
+                success: function (data) {
+                    console.log(data)
+                    var dropdown = $("#translationType");
+                    dropdown.empty();
+                    $.each(data, function (index, type) {
+  
+                        dropdown.append('<option value="' + type.value + '">' + type.name + '</option>');
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error occurred while fetching translation types:", error);
+                }
+            });
+
+            $("#translateForm").on("submit", function (event) {
+                event.preventDefault();
+
+                var inputText = $("#inputText").val();
+                var translationType = $("#translationType option:selected").text();
+
+                if (inputText.trim() === "") {
+                    alert("Please enter some text to translate.");
+                    return;
+                }
+
+                var data = {
+                    input: inputText,
+                    translationType: translationType.toLowerCase()
+                };
+
+                $.ajax({
+                    url: "/Translator/Translate",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(data),
+                    success: function (data) {
+                        console.log(data)
+                        if (data) {
+                            $("#result").html(
+                                '<div class="alert alert-success">' +
+                                '<strong>Translated Text:</strong> ' + data.translatedText +
+                                '</div>' +
+                                '<a href="/manage" class="btn btn-secondary mt-3">Manage Translations</a>'
+                            );
+                        } else {
+                            $("#result").html('<div class="alert alert-warning">No translation returned.</div>');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error occurred:", error);
+                        $("#result").html('<div class="alert alert-danger">Error occurred: ' + error + '</div>');
+                    }
+                });
+            });
+        });
+    </script>
+}
